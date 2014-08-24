@@ -43,7 +43,7 @@ validTrainDataTest <- validTrainData[-inTrain,]
 Creating the random forest model and testing it on train and test data:
 ```{r}
 library(randomForest)
-random.forest <- train(validTrainDataTrain[,-57],
+random.forest <- train(validTrainDataTrain[,-53],
                        validTrainDataTrain$classe,
                        tuneGrid=data.frame(mtry=3),
                        trControl=trainControl(method="none")
