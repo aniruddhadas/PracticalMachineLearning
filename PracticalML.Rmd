@@ -1,0 +1,57 @@
+---
+title: "Practical Machine Learning Writeup"
+author: "Aniruddha Das"
+date: "Sunday, August 24, 2014"
+output: html_document
+---
+
+Read in the data to identify features that could help with classifying the excercise **classe**.
+```{r}
+getwd()
+setwd("C:/and/PracticalMachineLearning")
+dir()
+train <- read.csv2("pml-training.csv",sep = ",")
+head(train)
+```
+
+seems there are lots of NAs, empty values and #DIV/0! (excel division errors in the data).Lets replace all the bad values with NAs. 
+```{r}
+train <- read.csv2("pml-training.csv",sep = ",", na.strings = c("", "NA", "#DIV/0!") ) 
+head(train)
+```
+
+Based on looking at the data seems there are columns that are not useful for prediction like X, user_name, raw_timestamp_part_1, raw_timestamp_part_2, cvtd_timestamp, new_window and num_window.
+
+Subsetting for relevant features names, removing NA columns and casting all entries as numeric except classe:
+```{r}
+validTrainFeatures <- colnames(train[colSums(is.na(train)) == 0])[-(1:7)]
+validTrainData <- train[validTrainFeatures]
+head(validTrainData)
+complete <- function(x) {x[,sapply(x, function(y) !any(is.na(y)))] }
+validTrainData <- complete(validTrainData)
+for(i in c(2:ncol(validTrainData)-1)) {validTrainData[,i] = as.numeric(as.character(validTrainData[,i]))}
+str(validTrainData)
+```
+Creating train and test sets from the valid training data. 70% training and 30% testing.
+```{r}
+library(caret)
+inTrain <- createDataPartition(y=validTrainData$classe, p=0.7, list=FALSE)
+validTrainDataTrain <- validTrainData[inTrain,]
+validTrainDataTest <- validTrainData[-inTrain,]
+```
+
+Creating the random forest model and testing it on train and test data:
+```{r}
+library(randomForest)
+random.forest <- train(validTrainDataTrain[,-57],
+                       validTrainDataTrain$classe,
+                       tuneGrid=data.frame(mtry=3),
+                       trControl=trainControl(method="none")
+                    )
+predictionsTrain <- predict(random.forest, newdata=validTrainDataTrain)
+confusionMatrix(predictionsTrain,validTrainDataTrain$classe)
+
+predictionsTest <- predict(random.forest, newdata=validTrainDataTest)
+confusionMatrix(predictionsTest,validTrainDataTest$classe)
+```
+We get very good Accuracy on the test data as shown above in the test data.
