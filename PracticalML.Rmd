@@ -8,7 +8,7 @@ output: html_document
 Read in the data to identify features that could help with classifying the excercise **classe**.
 ```{r}
 getwd()
-setwd("C:/and/PracticalMachineLearning")
+setwd("C:/Users/and/Documents/GitHub/PracticalMachineLearning")
 dir()
 train <- read.csv2("pml-training.csv",sep = ",")
 head(train)
